@@ -3,9 +3,11 @@ package com.example.covoiturage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.support.NullValue;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,5 +97,57 @@ public class CovoiturageRestController {
 
         return ResponseEntity.ok(updatedCovoiturageEntity);
     }
+
+
+
+    @Autowired
+    private EmailSenderService senderService;
+
+
+    @PostMapping("/SendEmail")
+    public ResponseEntity<String> triggerMail(
+            @RequestParam String email,
+            @RequestParam Long idCovoiturage,
+            @RequestParam String nameClient) {
+        try {
+            // Fetch additional information based on idCovoiturage
+            Optional<Covoiturage> optionalCovoiturage = CovoiturageRepository.findById(idCovoiturage);
+
+            // Check if the covoiturageInfo is present
+            if (optionalCovoiturage.isPresent()) {
+                Covoiturage covoiturageInfo = optionalCovoiturage.get();
+
+                String candidateEmail = email;
+                senderService.sendSimpleEmail(candidateEmail,
+                        "Confirmation d'acceptation de votre réservation",
+                        "Bonjour " + nameClient + ",\n\n" +
+                                "J'espère que cette lettre vous trouve bien.\n" +
+                                "Nous sommes ravis de vous informer que votre réservation pour le prochain trajet en covoiturage a été acceptée.\n"+
+                                " Votre demande a été confirmée et nous avons hâte de partager cette balade avec vous. Votre participation est très appréciée, et nous pensons que votre présence contribuera positivement à l'expérience du voyage.\n" +
+                                "\n\n" +
+                                "Voici quelques détails importants pour votre référence :\n" +
+                                "Départ : " + covoiturageInfo.getDepart() + "\n" +
+                                "Destination : " + covoiturageInfo.getDestination() + "\n" +
+                                "Date : " + covoiturageInfo.getDate() + "\n" +
+                                "*Veuillez vous assurer d'arriver à l'heure au lieu de départ et, en cas de changement dans vos projets, veuillez nous en informer à l'avance. Nous nous efforçons d'offrir une expérience de covoiturage confortable et agréable à tous les participants.\n" +
+                                "\n" +
+                                 "Merci d'avoir choisi de faire du covoiturage avec nous. Si vous avez d'autres questions ou avez besoin d'informations supplémentaires, n'hésitez pas à contacter notre équipe d'assistance client."+
+                                "\n\n" +
+                                "Bon voyage,\n" +
+                                "DevGenuis Teams");
+
+                // Assuming "dash" is the view name to be displayed after the acceptance process
+                return ResponseEntity.ok("Email sent successfully");
+            } else {
+                // Handle the case where Covoiturage with the given idCovoiturage is not found
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Covoiturage not found for id: " + idCovoiturage);
+            }
+        } catch (Exception e) {
+            // Log the exception or return an error response
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email");
+        }
+    }
+
+
 
 }
