@@ -8,6 +8,6 @@ import java.util.List;
 @Repository
 public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> {
 
-    List<Covoiturage> findByDepart(String depart);
+    List<Covoiturage> findByDepartAndDestinationAndDate(String depart, String destination, String date);
     List<Covoiturage> findByDriver(Long driver);
 }

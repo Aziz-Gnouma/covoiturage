@@ -51,11 +51,11 @@ public class CovoiturageRestController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/covs/{depart}")
-    public List<Covoiturage> getByName(@PathVariable String depart)
-    {
-        return CovoiturageRepository.findByDepart(depart);
+    @GetMapping("/covsddd/")
+    public List<Covoiturage> getByName(@RequestParam String depart, @RequestParam String destination, @RequestParam String date) {
+        return CovoiturageRepository.findByDepartAndDestinationAndDate(depart, destination, date);
     }
+
 
     @GetMapping("/covDriver/{idriver}")
     public List<Covoiturage> getByDriver(@PathVariable Long idriver) {
